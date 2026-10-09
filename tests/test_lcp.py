@@ -18,3 +18,28 @@ class Tests(unittest.TestCase):
     def test_no_program(self):
         n=self.nxt(bytes([2,0x11,0xEC])); self.assertIsNone(n.get_current_program_name())
     def test_filename_matches_legacy_limit(self): self.assertEqual(NXTUSB.rxe_name("abcdefghijklmnop.q"),"abcdefghijklmn.rxe")
+    def test_open_write_places_size_after_fixed_filename_field(self):
+        n = self.nxt(bytes([2, 0x81, 0, 7]))
+        self.assertEqual(n.open_write("test.rxe", 0x12345678), 7)
+        packet = n.dev.writes[0][1]
+        self.assertEqual(packet, b"\x01\x81" + b"test.rxe" + b"\0" * 12 + b"\x78\x56\x34\x12")
+
+    def test_upload_and_start_uses_fixed_filename_fields(self):
+        n = self.nxt(
+            bytes([2, 0x11, 0xEC]),
+            bytes([2, 0x85, 0x87]),
+            bytes([2, 0x81, 0, 7]),
+            bytes([2, 0x83, 0, 7, 3, 0]),
+            bytes([2, 0x84, 0, 7]),
+            bytes([2, 0x00, 0]),
+        )
+        self.assertEqual(n.upload_and_start(b"abc", "test.rxe"), "test.rxe")
+        name_field = b"test.rxe" + b"\0" * 12
+        self.assertEqual([packet for _, packet in n.dev.writes], [
+            b"\x00\x11",
+            b"\x01\x85" + name_field,
+            b"\x01\x81" + name_field + b"\x03\x00\x00\x00",
+            b"\x01\x83\x07abc",
+            b"\x01\x84\x07",
+            b"\x00\x00" + name_field,
+        ])

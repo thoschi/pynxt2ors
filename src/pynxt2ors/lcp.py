@@ -43,7 +43,10 @@ def _cstr(data: bytes) -> str:
 def _u16(data: bytes) -> int: return data[0] | (data[1] << 8)
 def _u32(data: bytes) -> int: return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24)
 def _addr(raw: bytes) -> str: return ":".join(f"{b:02X}" for b in raw)
-def _name(name: str) -> bytes: return name.encode("ascii", "strict")[:MAX_FILENAME] + b"\0"
+def _name(name: str) -> bytes:
+    # LCP filenames occupy a fixed 20-byte field, including the terminator.
+    # In OPEN_WRITE the four-byte file size follows this entire field.
+    return name.encode("ascii", "strict")[:MAX_FILENAME].ljust(MAX_FILENAME + 1, b"\0")
 
 @dataclass(frozen=True)
 class DeviceInfo:

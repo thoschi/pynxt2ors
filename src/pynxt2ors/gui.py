@@ -154,8 +154,8 @@ class Window(QMainWindow):
         token = self.connector.token if self.connector else ""
         if token:
             self.token_label.setText(
-                f'<a href="copy"><b>Token: {token}</b></a>'
-                ' &nbsp; <span style="color:#777;">(anklicken zum Kopieren)</span>'
+                f'<a href="copy" style="text-decoration:none; font-size:20pt;">'
+                f'<b>{token}</b></a>'
             )
             self.token_label.show()
         else:

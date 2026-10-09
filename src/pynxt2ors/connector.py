@@ -61,7 +61,7 @@ class Connector:
                 while not self.stop_evt.is_set() and not self.connect_evt.wait(.2):
                     if self.robot.get_current_program_name() is not None: raise RobotError("Auf dem Roboter läuft bereits ein Programm")
                 if self.stop_evt.is_set(): break
-                self.connect_evt.clear(); self.token=make_token(); self.emit(State.WAIT_SERVER,f"Token: {self.token}")
+                self.connect_evt.clear(); self.token=make_token(); self.emit(State.WAIT_SERVER, "")
                 reginfo = self.robot.register_info_for_server() if hasattr(self.robot,"register_info_for_server") else info
                 payload=dict(reginfo,token=self.token,cmd="register")
                 try:
